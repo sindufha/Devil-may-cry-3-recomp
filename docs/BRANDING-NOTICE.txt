@@ -1,0 +1,13 @@
+Devil May Cry 3: Special Edition branding
+
+Devil May Cry, its game logo, characters and screenshots belong to Capcom.
+This is an independent experimental Android project, not an official Capcom release.
+The logo is used for app identification. It is not covered by the licenses
+of pcrecomp, DXVK, Mesa, or the other open-source runtime components.
+
+Unmodified logo PNG source:
+https://gamesdb.launchbox-app.com/games/images/130269-devil-may-cry-3-special-edition
+https://images.launchbox-app.com/734881bf-e84c-402b-a277-deedf7ada7e0.png
+
+Only UI branding is packaged. The original executable, game archives, gameplay
+textures/models, audio, movies and save data must be supplied by the user.
