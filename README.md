@@ -12,10 +12,7 @@
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
-Play the PC version of **Devil May Cry 3: Special Edition** on Android through
-statically recompiled ARM64 game code. The runtime translates the game's Windows
-and Direct3D 9 interfaces, renders through DXVK Native and Vulkan, and plays its
-audio through AAudio.
+This is A static Recompilation of the game **Devil May Cry 3: Special Edition** From PC to Android ARM64, The runtime translates the game's Windows and Direct3D 9 interfaces, renders through DXVK Native and Vulkan, and plays its audio through AAudio.
 
 **You must own the PC game and supply your own `dmc3se.exe` plus the complete
 matching game folder. No original game files are included.** Read the
@@ -106,6 +103,8 @@ GPUs are unverified. There is no fixed frame-rate guarantee. Imported completed
 saves determine which progression-dependent options appear. Background process
 termination cannot restore an unsaved live session. New UI/input changes have
 local regression evidence; they still need device confirmation.
+
+Poco F3 with Snapdragon 870, Adreno 650, and 6 GB of ram gets around 30 FPS at average inside battle, with higher frame drop at more dense area, such as stage 2 and 3. Final stage is smooth at 60 FPS when dueling.
 
 See [Status](docs/STATUS.md) and [Troubleshooting](docs/TROUBLESHOOTING.md) for
 the distinction between screenshots, user reports, and local automated checks.
