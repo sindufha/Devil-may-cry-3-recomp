@@ -2,6 +2,16 @@
 
 [Back to overview](README.md)
 
+## v0.26 - icon fix (pending confirmation)
+
+- Keep both adaptive-icon layers square at 108 x 108 dp so the launcher does
+  not derive an oval icon from the wide logo's intrinsic dimensions.
+- Keep the complete logo centered inside the adaptive icon's safe area.
+- Rename the installed application from DMC3 Android to DMC3.
+- Reuse the v0.25 native runtime, GPU libraries, and all 850 cached guest objects.
+- See the [issue #1 fix and validation](docs/ICON-FIX.md). Device appearance
+  confirmation is pending; this candidate has not been published.
+
 ## v0.25 — branded preview
 
 - Add the DMC3 Special Edition logo to the adaptive app icon and launcher.

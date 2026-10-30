@@ -1,0 +1,42 @@
+--- a/dmc3-android/android/launcher/AndroidManifest.xml
++++ b/dmc3-android/android/launcher/AndroidManifest.xml
+@@ -1,6 +1,6 @@
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="local.dmc3.runtimeprobe" android:versionCode="25" android:versionName="0.25-branded-preview">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="local.dmc3.runtimeprobe" android:versionCode="26" android:versionName="0.26-icon-fix">
+   <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="28" />
+-  <application android:label="DMC3 Android" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:hasCode="true" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:theme="@android:style/Theme.Material.NoActionBar">
++  <application android:label="DMC3" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:hasCode="true" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:theme="@android:style/Theme.Material.NoActionBar">
+     <activity android:name=".LauncherActivity" android:exported="true" android:screenOrientation="portrait">
+       <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+     </activity>
+--- a/dmc3-android/android/launcher/res/drawable/ic_launcher_background.xml
++++ b/dmc3-android/android/launcher/res/drawable/ic_launcher_background.xml
+@@ -1,3 +1,4 @@
+ <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
++    <size android:width="108dp" android:height="108dp" />
+     <gradient android:angle="315" android:startColor="#4B1424" android:centerColor="#200F18" android:endColor="#080B10" />
+ </shape>
+--- a/dmc3-android/android/launcher/res/drawable/ic_launcher_foreground.xml
++++ b/dmc3-android/android/launcher/res/drawable/ic_launcher_foreground.xml
+@@ -1,4 +1,10 @@
+ <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
++    <!-- Keep intrinsic dimensions square: launchers use them to size the mask. -->
++    <item android:width="108dp" android:height="108dp" android:gravity="center">
++        <shape android:shape="rectangle">
++            <solid android:color="#00000000" />
++        </shape>
++    </item>
+     <item android:width="60dp" android:height="26dp" android:gravity="center">
+         <bitmap android:src="@drawable/dmc3_logo" android:gravity="fill" android:filter="true" />
+     </item>
+--- a/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/LauncherActivity.java
++++ b/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/LauncherActivity.java
+@@ -55,7 +55,7 @@
+         profileStatus=text("Normal progress is kept separately.",12,MUTED);margin(settings,profileStatus,12);saveButton=button("Import completed save",false);margin(settings,saveButton,12);saveButton.setOnClickListener(v->pick(PICK_SAVE,false));
+         selectSaveButton=button("Select save",false);margin(settings,selectSaveButton,10);selectSaveButton.setOnClickListener(v->chooseSave());
+         LinearLayout graphics=card(root,16);section(graphics,"GRAPHICS");margin(graphics,text("GPU driver",15,WHITE),14);driverButton=button("",false);margin(graphics,driverButton,12);updateDriver();driverButton.setOnClickListener(v->chooseDriver());
+-        TextView note=text("DMC3 Android  /  v0.25",11,MUTED);note.setGravity(Gravity.CENTER);margin(root,note,24);
++        TextView note=text("DMC3  /  v0.26",11,MUTED);note.setGravity(Gravity.CENTER);margin(root,note,24);
+         LinearLayout dock=new LinearLayout(this);dock.setOrientation(LinearLayout.VERTICAL);dock.setPadding(dp(22),dp(14),dp(22),dp(14));dock.setBackgroundColor(0xff111824);page.addView(dock);
+         startButton=button("Start game",true);dock.addView(startButton,new LinearLayout.LayoutParams(-1,dp(54)));startButton.setOnClickListener(v->startGame());status=text("Checking game files...",12,MUTED);status.setGravity(Gravity.CENTER);margin(dock,status,9);updateSettings();refresh();
+     }
