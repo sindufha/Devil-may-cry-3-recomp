@@ -39,5 +39,8 @@ Activity destruction stop the session.
 
 Runtime optimization includes local guest registers, resolved static transfers,
 a hashed dispatch table, and cached compilation units. Incremental UI work can
-reuse the native library; the branding build does so. The app remains subject
+reuse the native library. The widescreen build applies targeted transforms to
+twelve lifted function sources in six cached batch objects; other guest objects
+are reused. These changes retain the original EXE and baseline lifted sources.
+The app remains subject
 to compatibility-layer overhead and device-specific graphics behavior.

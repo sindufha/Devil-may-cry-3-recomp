@@ -1,7 +1,7 @@
 {
-  "version": "0.25-branded-preview",
-  "version_code": 25,
-  "date": "2026-10-29",
+  "version": "0.28-widescreen-startup-fix",
+  "version_code": 28,
+  "date": "2026-10-30",
   "package": "local.dmc3.runtimeprobe",
   "abi": "arm64-v8a",
   "package_min_api": 26,
@@ -13,15 +13,14 @@
     "ram_gb": 6
   },
   "apk": {
-    "filename": "DMC3-Android-arm64-v0.25.apk",
-    "bytes": 53470524,
-    "sha256": "9ef80afc5a66b18764e32c0a201a7fb82cb4f916a40b6c5c50324cbb96ee2861",
-    "uncompressed_entries_bytes": 151405767
+    "filename": "DMC3-Android-arm64-v0.28.apk",
+    "bytes": 53491004,
+    "sha256": "c21fcc51d3d549b0e18b3b1e15a78730588ded19a25ce2bd3e94b4c5f7cced5f",
+    "uncompressed_entries_bytes": 151410595
   },
-  "native_library_sha256": "15ac11cc10cd5c68b5ea5e08a5b9a4f76cef1e59eb48a72cd3a466040b8fe41d",
-  "native_runtime_unchanged_from": "0.24-android-back-fix",
+  "native_library_sha256": "c959a44362b3ea3ecbaa4b14b4423bbc425d5f3c9b31264d3d53ea2bb6510ce5",
   "catalog_functions": 19152,
-  "cached_guest_objects_unchanged": 850,
+  "cached_guest_objects_unchanged": 844,
   "dxvk": {
     "version": "2.6.2",
     "revision": "9d6f54a1ade20d1d27dd421024717a636f3d8c68",
@@ -37,8 +36,66 @@
   "latest_ui_device_tested_by_agent": false,
   "published": true,
   "repository_url": "https://github.com/sindufha/Devil-may-cry-3-recomp",
-  "release_url": "https://github.com/sindufha/Devil-may-cry-3-recomp/releases/tag/v0.25",
+  "release_url": "https://github.com/sindufha/Devil-may-cry-3-recomp/releases/tag/v0.28",
   "project_license": "MIT",
   "game_ownership_required": true,
-  "required_executable": "dmc3se.exe"
+  "required_executable": "dmc3se.exe",
+  "application_label": "DMC3",
+  "cached_guest_objects_rebuilt": 6,
+  "widescreen_patched_function_sources": 12,
+  "release_asset_count": 1,
+  "user_reported_gameplay_on_current_build": true,
+  "aspect_ratio": {
+    "default": "16:9",
+    "options": [
+      "4:3",
+      "16:9"
+    ],
+    "wide_presets": [
+      [
+        854,
+        480
+      ],
+      [
+        960,
+        540
+      ],
+      [
+        1024,
+        576
+      ],
+      [
+        1152,
+        648
+      ],
+      [
+        1280,
+        720
+      ],
+      [
+        1440,
+        810
+      ],
+      [
+        1600,
+        900
+      ]
+    ],
+    "live_switching": true
+  },
+  "validation": {
+    "patched_validator_cases": 19,
+    "camera_execution_cases": 6,
+    "readonly_hud_execution_cases": 6,
+    "readonly_hud_constant_unchanged": true,
+    "graphics_options_checks": 80,
+    "window_mailbox_checks": 71,
+    "package_installed_on_development_device": true,
+    "existing_saves_unchanged_on_install": true,
+    "full_campaign_verified": false
+  },
+  "known_limitations": [
+    "Low FPS during the user-reported first-boss encounter; a 19-second sample at 1280x720 on Poco F3 averaged 15.5 FPS. Exact cause unresolved.",
+    "Every menu, cutscene, HUD element, and camera path has not been visually verified."
+  ]
 }

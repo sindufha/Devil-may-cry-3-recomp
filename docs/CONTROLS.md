@@ -62,6 +62,16 @@ In **Graphics**, enable **Show FPS** to display successful-present frame rate
 at the top center. Default top-row controls reserve space below it. Explicit
 custom positions remain under your control, including possible overlap with FPS.
 
+## Aspect ratio and render size
+
+Open **MENU > Graphics > Aspect Ratio** and choose **Widescreen 16:9** or
+**Original 4:3**. Widescreen is the default; an original-aspect choice is retained
+after it is successfully applied. Adjust the render-resolution slider within
+the selected ratio. Changes run through the game's normal resource rebuild.
+
+The 16:9 presets range from 854 x 480 to 1600 x 900. Wider phone screens retain
+side margins to preserve 16:9. See [widescreen details](WIDESCREEN.md).
+
 ## Backgrounding
 
 Home and Recent Apps pause rendering, audio progression, and the guest clock.

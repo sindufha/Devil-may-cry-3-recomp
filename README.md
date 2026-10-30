@@ -24,17 +24,17 @@ campaign compatibility. See [what has been verified](docs/STATUS.md).
 
 ## Android build
 
-**v0.25 — branded preview** · October 29, 2026
+**v0.28 — icon, naming, and widescreen settings** · October 30, 2026
 
 | Package | Architecture | Status |
 | --- | --- | --- |
-| DMC3 Android | ARM64 / `arm64-v8a` | Experimental development build |
+| DMC3 | ARM64 / `arm64-v8a` | Experimental development build |
 
-[Download the ARM64 APK](https://github.com/sindufha/Devil-may-cry-3-recomp/releases/download/v0.25/DMC3-Android-arm64-v0.25.apk)
-· [Release notes and assets](https://github.com/sindufha/Devil-may-cry-3-recomp/releases/tag/v0.25)
-· [SHA-256 checksums](https://github.com/sindufha/Devil-may-cry-3-recomp/releases/download/v0.25/SHA256SUMS)
+[Download the ARM64 APK](https://github.com/sindufha/Devil-may-cry-3-recomp/releases/download/v0.28/DMC3-Android-arm64-v0.28.apk)
+· [Release notes](https://github.com/sindufha/Devil-may-cry-3-recomp/releases/tag/v0.28)
+· [SHA-256 checksum](docs/SHA256SUMS)
 
-The APK is **50.99 MiB**, ARM64 only. This is an experimental prerelease.
+The APK is **51.01 MiB**, ARM64 only. This is an experimental prerelease.
 Package details, runtime versions, and the supported EXE fingerprint are in
 [Build information](docs/BUILD-INFO.md). This repository publishes documentation,
 screenshots, and APK previews; the full source workspace is not published here.
@@ -55,8 +55,10 @@ or save data. The screenshots below are documentation images only.
 - **Custom interface:** move all 16 controls, resize each from 50–200%, pinch
   to resize, and save or reset your layout. Complete controls stay within the
   usable screen area, including notch insets.
-- **Session settings:** live render resolution from 640×480 to 1600×1200,
-  a top-center FPS display, control visibility, size, and opacity.
+- **Aspect ratio:** Widescreen 16:9 and Original 4:3, with camera/HUD corrections
+  and live switching in MENU > Graphics > Aspect Ratio.
+- **Session settings:** 4:3 render sizes from 640×480 to 1600×1200, seven 16:9
+  sizes from 854×480 to 1600×900, a top-center FPS display, and control preferences.
 - **Save profiles:** normal and completed-save profiles, completed-save import,
   save history, and Select save. Unlock All uses a save you provide.
 - **Android navigation:** a Back confirmation with Yes/No, and a retained session
@@ -113,6 +115,8 @@ the distinction between screenshots, user reports, and local automated checks.
 
 - [Installation, updates, and supported game files](docs/INSTALLATION.md)
 - [Touch controls, custom layouts, and Android Back](docs/CONTROLS.md)
+- [Widescreen settings, source patch, and validation](docs/WIDESCREEN.md)
+- [Adaptive icon and application-name fix](docs/ICON-FIX.md)
 - [Development status and validation](docs/STATUS.md)
 - [Runtime architecture](docs/ARCHITECTURE.md)
 - [Troubleshooting and useful bug reports](docs/TROUBLESHOOTING.md)

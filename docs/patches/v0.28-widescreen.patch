@@ -1,0 +1,295 @@
+--- a/dmc3-android/scripts/bootstrap-runtime.py
++++ b/dmc3-android/scripts/bootstrap-runtime.py
+@@ -15,6 +15,7 @@
+ import zipfile
+ import time
+ from performance_codegen import optimize_source,VERSION as PERF_CODEGEN_VERSION
++from widescreen_codegen import identity as widescreen_identity,patch_source as widescreen_patch
+ from resource_limits import apply_worker_limits
+ import pefile
+ 
+@@ -181,9 +182,9 @@
+         tag=f'guest_{address:08x}'
+         if args.performance and source.stat().st_size<=4194304:
+             optimized=perf_dir/source.name;perf_key='perf_generated_'+hex(address)
+-            identity=source_key+perf_identity
++            identity=source_key+perf_identity+widescreen_identity(address)
+             if not optimized.exists() or cache.get(perf_key)!=identity:
+-                text,counts=optimize_source(source.read_text(),selected)
++                text,counts=optimize_source(widescreen_patch(source.read_text(),address),selected)
+                 optimized.write_text(text);cache[perf_key]=identity;cache[perf_key+'_counts']=counts
+             for kind,count in cache[perf_key+'_counts'].items():optimized_counts[kind]+=count
+             source=optimized;tag='perf_'+tag
+--- a/dmc3-android/src/runtime/platform/live-graphics.c
++++ b/dmc3-android/src/runtime/platform/live-graphics.c
+@@ -5,7 +5,14 @@
+  * error: 0 none,2 the actual backbuffer did not match the requested size. */
+ static atomic_uint actual_size,target_size,phase,sequence,error;
+ int dmc3_live_graphics_valid(uint32_t width,uint32_t height){
+-    return width>=640&&width<=1600&&height>=480&&height<=1200&&width*3==height*4;
++    if(width<640||width>1600||height<480||height>1200)return 0;
++    int delta=(int)(width*9)-(int)(height*16);
++    return width*3==height*4 || (delta>=-6&&delta<=6);
++}
++float dmc3_live_graphics_width_scale(void){
++    unsigned actual=atomic_load(&actual_size),w=actual&65535,h=actual>>16;
++    if(!w||!h||w*3<=h*4)return 1.0f;
++    return (4.0f*(float)h)/(3.0f*(float)w);
+ }
+ void dmc3_live_graphics_actual(uint32_t width,uint32_t height){
+     if(width&&height&&width<=65535&&height<=65535)atomic_store(&actual_size,width|(height<<16));
+--- a/dmc3-android/android/launcher/AndroidManifest.xml
++++ b/dmc3-android/android/launcher/AndroidManifest.xml
+@@ -1,4 +1,4 @@
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="local.dmc3.runtimeprobe" android:versionCode="26" android:versionName="0.26-icon-fix">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="local.dmc3.runtimeprobe" android:versionCode="28" android:versionName="0.28-widescreen-startup-fix">
+   <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="28" />
+   <application android:label="DMC3" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:hasCode="true" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:theme="@android:style/Theme.Material.NoActionBar">
+     <activity android:name=".LauncherActivity" android:exported="true" android:screenOrientation="portrait">
+--- a/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/LauncherActivity.java
++++ b/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/LauncherActivity.java
+@@ -55,7 +55,7 @@
+         profileStatus=text("Normal progress is kept separately.",12,MUTED);margin(settings,profileStatus,12);saveButton=button("Import completed save",false);margin(settings,saveButton,12);saveButton.setOnClickListener(v->pick(PICK_SAVE,false));
+         selectSaveButton=button("Select save",false);margin(settings,selectSaveButton,10);selectSaveButton.setOnClickListener(v->chooseSave());
+         LinearLayout graphics=card(root,16);section(graphics,"GRAPHICS");margin(graphics,text("GPU driver",15,WHITE),14);driverButton=button("",false);margin(graphics,driverButton,12);updateDriver();driverButton.setOnClickListener(v->chooseDriver());
+-        TextView note=text("DMC3  /  v0.26",11,MUTED);note.setGravity(Gravity.CENTER);margin(root,note,24);
++        TextView note=text("DMC3  /  v0.28",11,MUTED);note.setGravity(Gravity.CENTER);margin(root,note,24);
+         LinearLayout dock=new LinearLayout(this);dock.setOrientation(LinearLayout.VERTICAL);dock.setPadding(dp(22),dp(14),dp(22),dp(14));dock.setBackgroundColor(0xff111824);page.addView(dock);
+         startButton=button("Start game",true);dock.addView(startButton,new LinearLayout.LayoutParams(-1,dp(54)));startButton.setOnClickListener(v->startGame());status=text("Checking game files...",12,MUTED);status.setGravity(Gravity.CENTER);margin(dock,status,9);updateSettings();refresh();
+     }
+--- a/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/GraphicsOptions.java
++++ b/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/GraphicsOptions.java
+@@ -3,16 +3,25 @@
+ /** Resolution limits shared by the menu model and original game resize path. */
+ final class GraphicsOptions {
+     private static final int[] WIDTHS={640,800,960,1024,1280,1440,1600};
++    private static final int[] WIDE_WIDTHS={854,960,1024,1152,1280,1440,1600};
++    private static final int[] WIDE_HEIGHTS={480,540,576,648,720,810,900};
+     static final int COUNT=WIDTHS.length;
+     private GraphicsOptions(){}
+-    static boolean valid(int width,int height){return width>=640&&width<=1600&&height>=480&&height<=1200&&width*3==height*4;}
++    static boolean valid(int width,int height){if(width<640||width>1600||height<480||height>1200)return false;int delta=width*9-height*16;return width*3==height*4||Math.abs(delta)<=6;}
++    static boolean widescreen(int width,int height){return valid(width,height)&&width*3>height*4;}
+     static int width(int index){return WIDTHS[Math.max(0,Math.min(COUNT-1,index))];}
+     static int height(int index){return width(index)*3/4;}
++    static int width(int index,boolean wide){return wide?WIDE_WIDTHS[Math.max(0,Math.min(COUNT-1,index))]:width(index);}
++    static int height(int index,boolean wide){return wide?WIDE_HEIGHTS[Math.max(0,Math.min(COUNT-1,index))]:height(index);}
++    static String label(int index,boolean wide){return size(width(index,wide),height(index,wide));}
+     static String label(int index){return size(width(index),height(index));}
+     static String size(int width,int height){return width+" \u00d7 "+height;}
+     static int closestIndex(int width,int height){
++        return closestIndex(width,height,false);
++    }
++    static int closestIndex(int width,int height,boolean wide){
+         int selected=0;long distance=Long.MAX_VALUE;
+-        for(int i=0;i<COUNT;i++){long dx=(long)width-width(i),dy=(long)height-height(i),next=dx*dx+dy*dy;if(next<distance){distance=next;selected=i;}}
++        for(int i=0;i<COUNT;i++){long dx=(long)width-width(i,wide),dy=(long)height-height(i,wide),next=dx*dx+dy*dy;if(next<distance){distance=next;selected=i;}}
+         return selected;
+     }
+     static boolean busy(int phase){return phase==1||phase==2||phase==5;}
+--- a/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/GameActivity.java
++++ b/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/GameActivity.java
+@@ -46,10 +46,13 @@
+         if(restoreGraphics&&graphicsState[0]>0&&nativeFrameCount()>0){
+             restoreGraphics=false;
+             int w=getSharedPreferences(GameFiles.PREFS,MODE_PRIVATE).getInt("render_width",0),h=getSharedPreferences(GameFiles.PREFS,MODE_PRIVATE).getInt("render_height",0);
++            if(!GraphicsOptions.valid(w,h)){w=graphicsState[0];h=graphicsState[1];}
++            boolean wide=getSharedPreferences(GameFiles.PREFS,MODE_PRIVATE).getBoolean("widescreen_enabled",true);
++            if(wide!=GraphicsOptions.widescreen(w,h)){int preset=GraphicsOptions.closestIndex(w,h,wide);w=GraphicsOptions.width(preset,wide);h=GraphicsOptions.height(preset,wide);}
+             if(GraphicsOptions.valid(w,h)&&(w!=graphicsState[0]||h!=graphicsState[1]))nativeRequestResolution(w,h);
+         }
+         if(graphicsState[2]==3&&graphicsState[3]!=completedGraphicsSequence){
+-            completedGraphicsSequence=graphicsState[3];getSharedPreferences(GameFiles.PREFS,MODE_PRIVATE).edit().putInt("render_width",graphicsState[0]).putInt("render_height",graphicsState[1]).apply();
++            completedGraphicsSequence=graphicsState[3];getSharedPreferences(GameFiles.PREFS,MODE_PRIVATE).edit().putInt("render_width",graphicsState[0]).putInt("render_height",graphicsState[1]).putBoolean("widescreen_enabled",GraphicsOptions.widescreen(graphicsState[0],graphicsState[1])).apply();
+         }
+         graphicsHandler.postDelayed(this,250);
+     }};
+--- a/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/GameMenuDialog.java
++++ b/dmc3-android/android/launcher/src/local/dmc3/runtimeprobe/GameMenuDialog.java
+@@ -21,6 +21,9 @@
+ import android.widget.SeekBar;
+ import android.widget.Switch;
+ import android.widget.TextView;
++import android.widget.Spinner;
++import android.widget.ArrayAdapter;
++import android.widget.AdapterView;
+ 
+ /** Lightweight native settings panel. Resolution changes do not close it. */
+ final class GameMenuDialog extends Dialog {
+@@ -46,8 +49,10 @@
+     private final TextView selectedLabel,currentLabel,statusLabel,scaleLabel,opacityLabel;
+     private final SeekBar resolutionSlider,scaleSlider,opacitySlider;
+     private final Switch fpsSwitch,controlsSwitch;
++    private final Spinner aspectSelector;
++    private final TextView lowLabel,highLabel;
+     private int selected;
+-    private boolean dragging,updating;
++    private boolean dragging,updating,widescreen;
+     private long lockUntil;
+     private float controlScale,controlOpacity;
+     private final Runnable refresh=new Runnable(){public void run(){if(!isShowing())return;syncState();handler.postDelayed(this,250);}};
+@@ -71,6 +76,12 @@
+         LinearLayout graphics=page("GRAPHICS","Changes apply while this menu stays open.");
+         LinearLayout resolution=card(graphics);resolution.addView(text("RENDER RESOLUTION",10,MUTED));
+         currentLabel=text("Waiting for the renderer...",12,MUTED);add(resolution,currentLabel,5,-2);
++        add(resolution,text("ASPECT RATIO",10,MUTED),12,-2);
++        aspectSelector=new Spinner(context);
++        ArrayAdapter<String> aspectAdapter=new ArrayAdapter<String>(context,android.R.layout.simple_spinner_dropdown_item,new String[]{"Original 4:3","Widescreen 16:9"}){
++            @Override public View getView(int position,View recycled,android.view.ViewGroup parent){TextView view=(TextView)super.getView(position,recycled,parent);view.setTextColor(TEXT);return view;}
++        };
++        aspectSelector.setAdapter(aspectAdapter);aspectSelector.setContentDescription("Game aspect ratio");add(resolution,aspectSelector,2,44);
+         LinearLayout selector=new LinearLayout(context);selector.setGravity(Gravity.CENTER_VERTICAL);add(resolution,selector,12,44);
+         minus=button("\u2212",false);selector.addView(minus,new LinearLayout.LayoutParams(dp(44),-1));minus.setContentDescription("Lower render resolution");
+         selectedLabel=text("--",22,TEXT);selectedLabel.setGravity(Gravity.CENTER);selectedLabel.setTypeface(Typeface.MONOSPACE,Typeface.BOLD);selectedLabel.setSingleLine(true);selectedLabel.setAutoSizeTextTypeUniformWithConfiguration(12,22,1,android.util.TypedValue.COMPLEX_UNIT_SP);selector.addView(selectedLabel,new LinearLayout.LayoutParams(0,-1,1));
+@@ -81,7 +92,7 @@
+         fpsSwitch=toggle(graphics,"Show FPS","Frame rate at the top center.",actions.showFps());fpsSwitch.setOnCheckedChangeListener((v,on)->{if(!updating)actions.showFps(on);});
+         minus.setOnClickListener(v->choose(selected-1));plus.setOnClickListener(v->choose(selected+1));
+         resolutionSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+-            public void onProgressChanged(SeekBar bar,int progress,boolean user){if(user){selected=progress;selectedLabel.setText(GraphicsOptions.label(selected));}}
++            public void onProgressChanged(SeekBar bar,int progress,boolean user){if(user){selected=progress;selectedLabel.setText(GraphicsOptions.label(selected,widescreen));}}
+             public void onStartTrackingTouch(SeekBar bar){dragging=true;}
+             public void onStopTrackingTouch(SeekBar bar){dragging=false;applyResolution();}
+         });
+@@ -98,6 +109,16 @@
+             public void onStopTrackingTouch(SeekBar bar){}
+         };
+         scaleSlider.setOnSeekBarChangeListener(controlsChange);opacitySlider.setOnSeekBarChangeListener(controlsChange);controlsSwitch.setOnCheckedChangeListener((v,on)->{if(!updating)applyControls();});
++        lowLabel=low;highLabel=high;
++        aspectSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
++            public void onNothingSelected(AdapterView<?> parent){}
++            public void onItemSelected(AdapterView<?> parent,View view,int position,long id){
++                if(position!=aspectSelector.getSelectedItemPosition())return;
++                boolean wide=position==1;if(updating||wide==widescreen)return;
++                int[] state=actions.graphicsState();if(state==null||state.length<7||state[0]<=0||GraphicsOptions.busy(state[2])){syncState();return;}
++                widescreen=wide;selected=GraphicsOptions.closestIndex(state[0],state[1],wide);updateResolutionLabels();applyResolution();
++            }
++        });
+         updateControlLabels();
+         graphicsTab.setOnClickListener(v->selectPage(0));controlsTab.setOnClickListener(v->selectPage(1));selectPage(0);syncState();
+     }
+@@ -115,10 +136,11 @@
+     @Override protected void onStop(){handler.removeCallbacks(refresh);super.onStop();}
+     @Override public void onBackPressed(){actions.resume();}
+     private void selectPage(int page){for(int i=0;i<pages.getChildCount();i++)pages.getChildAt(i).setVisibility(i==page?View.VISIBLE:View.GONE);graphicsTab.setBackground(shape(page==0?0xff652238:0xff2a1922,9,page==0?RED:LINE));controlsTab.setBackground(shape(page==1?0xff652238:0xff2a1922,9,page==1?RED:LINE));}
+-    private void choose(int index){selected=Math.max(0,Math.min(GraphicsOptions.COUNT-1,index));resolutionSlider.setProgress(selected);selectedLabel.setText(GraphicsOptions.label(selected));applyResolution();}
++    private void updateResolutionLabels(){selectedLabel.setText(GraphicsOptions.label(selected,widescreen));lowLabel.setText(GraphicsOptions.label(0,widescreen));highLabel.setText(GraphicsOptions.label(GraphicsOptions.COUNT-1,widescreen));}
++    private void choose(int index){selected=Math.max(0,Math.min(GraphicsOptions.COUNT-1,index));resolutionSlider.setProgress(selected);updateResolutionLabels();applyResolution();}
+     private void applyResolution(){
+         int[] state=actions.graphicsState();if(state==null||state.length<7||state[0]<=0||GraphicsOptions.busy(state[2])){syncState();return;}
+-        int width=GraphicsOptions.width(selected),height=GraphicsOptions.height(selected);
++        int width=GraphicsOptions.width(selected,widescreen),height=GraphicsOptions.height(selected,widescreen);
+         if(state[0]==width&&state[1]==height){syncState();return;}
+         lockUntil=SystemClock.uptimeMillis()+500;statusLabel.setText("Applying "+GraphicsOptions.size(width,height)+"...");setResolutionEnabled(false);
+         actions.resolution(width,height);
+@@ -127,18 +149,18 @@
+         int[] state=actions.graphicsState();boolean ready=state!=null&&state.length>=7&&state[0]>0&&state[1]>0;
+         boolean busy=ready&&GraphicsOptions.busy(state[2]);boolean localLock=SystemClock.uptimeMillis()<lockUntil;
+         currentLabel.setText(ready?"Current render: "+GraphicsOptions.size(state[0],state[1]):"Waiting for the renderer...");
+-        if(!dragging&&busy&&GraphicsOptions.valid(state[4],state[5])){selected=GraphicsOptions.closestIndex(state[4],state[5]);resolutionSlider.setProgress(selected);}
+-        if(!dragging&&!busy&&!localLock&&ready){selected=GraphicsOptions.closestIndex(state[0],state[1]);resolutionSlider.setProgress(selected);}
+-        if(!dragging)selectedLabel.setText(GraphicsOptions.label(selected));
++        if(!dragging&&busy&&GraphicsOptions.valid(state[4],state[5])){widescreen=GraphicsOptions.widescreen(state[4],state[5]);selected=GraphicsOptions.closestIndex(state[4],state[5],widescreen);resolutionSlider.setProgress(selected);}
++        if(!dragging&&!busy&&!localLock&&ready){widescreen=GraphicsOptions.widescreen(state[0],state[1]);selected=GraphicsOptions.closestIndex(state[0],state[1],widescreen);resolutionSlider.setProgress(selected);}
++        if(!dragging)updateResolutionLabels();
+         statusLabel.setTextColor(MUTED);
+         if(!ready)statusLabel.setText("Resolution becomes available after the renderer starts.");
+         else if(busy)statusLabel.setText("Applying "+GraphicsOptions.size(state[4],state[5])+"...");
+         else if(!localLock&&state[2]==4){statusLabel.setText("Could not apply the requested size. Current render: "+GraphicsOptions.size(state[0],state[1])+".");statusLabel.setTextColor(0xffff9daa);}
+         else if(!localLock){statusLabel.setText("Release the slider to apply. Lower resolution reduces GPU load.");statusLabel.setTextColor(MUTED);}
+         setResolutionEnabled(ready&&!busy&&!localLock);
+-        updating=true;fpsSwitch.setChecked(actions.showFps());updating=false;
++        updating=true;fpsSwitch.setChecked(actions.showFps());aspectSelector.setSelection(widescreen?1:0);updating=false;
+     }
+-    private void setResolutionEnabled(boolean enabled){resolutionSlider.setEnabled(enabled);minus.setEnabled(enabled&&selected>0);plus.setEnabled(enabled&&selected<GraphicsOptions.COUNT-1);resolutionSlider.setAlpha(enabled?1:.4f);minus.setAlpha(minus.isEnabled()?1:.4f);plus.setAlpha(plus.isEnabled()?1:.4f);}
++    private void setResolutionEnabled(boolean enabled){aspectSelector.setEnabled(enabled);resolutionSlider.setEnabled(enabled);minus.setEnabled(enabled&&selected>0);plus.setEnabled(enabled&&selected<GraphicsOptions.COUNT-1);resolutionSlider.setAlpha(enabled?1:.4f);minus.setAlpha(minus.isEnabled()?1:.4f);plus.setAlpha(plus.isEnabled()?1:.4f);}
+     private void applyControls(){updateControlLabels();actions.controls(controlScale,controlOpacity,controlsSwitch.isChecked());}
+     private void updateControlLabels(){scaleLabel.setText("Control size   "+Math.round(controlScale*100)+"%");opacityLabel.setText("Control opacity   "+Math.round(controlOpacity*100)+"%");}
+     private LinearLayout page(String title,String subtitle){
+--- /dev/null
++++ b/dmc3-android/scripts/widescreen_codegen.py
+@@ -0,0 +1,48 @@
++"""Pinned DMC3SE widescreen edits; only the affected lifted units change.
++
++Address/formula reference: ThirteenAG/WidescreenFixesPack, commit
++7f09e7433c141d5dfd69ab72503471c3e8b7212e,
++source/DevilMayCry3.WidescreenFix/dllmain.cpp. Original EXE is never patched.
++"""
++import hashlib
++from pathlib import Path
++
++CAMERA={0x6cd630,0x6cd79c,0x6cd7ca,0x6cd8b7,0x6cd901,0x6cda6b}
++TEXT={0x406cb0,0x406e40}
++HUD={0x6dd4a0,0x6dd7cf}
++TARGETS=CAMERA|TEXT|HUD|{0x4028b0,0x653630}
++VERSION=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
++
++def identity(address):
++    return VERSION if address in TARGETS else ''
++
++def patch_source(text,address):
++    if address not in TARGETS:return text
++    def replace(old,new):
++        nonlocal text
++        if text.count(old)!=1:raise RuntimeError(f'Widescreen instruction mismatch: {address:08x}: {old}')
++        text=text.replace(old,new)
++    if address==0x4028b0:
++        replace('if (CMP_EQ(_flag_a, _flag_b)) goto L_004028EA; /* 0x004028DC:',
++                'if (CMP_EQ(_flag_a, _flag_b) || dmc3_live_graphics_valid(MEM32(esi), MEM32(edi))) goto L_004028EA; /* 0x004028DC:')
++    if address in CAMERA:
++        replace('eax = MEM32(0x252CAC8); /* 0x006CDB8E:',
++                '*(float*)ADDR(edi + 0x60) *= dmc3_live_graphics_width_scale();\n    eax = MEM32(0x252CAC8); /* 0x006CDB8E:')
++        replace('_st[0] *= (double)*(float*)ADDR(eax + 0x60); /* 0x006CDBB7:',
++                '_st[0] *= (double)*(float*)ADDR(eax + (dmc3_live_graphics_width_scale() < 0.999f ? 0x70 : 0x60)); /* 0x006CDBB7:')
++    if address in TEXT:
++        for pc in ['00406DD5','00406DFB']:
++            replace(f'_st[0] *= (double)*(float*)ADDR(0x7397DC); /* 0x{pc}:',
++                    f'_st[0] *= (double)*(float*)ADDR(0x7397DC) * dmc3_live_graphics_width_scale(); /* 0x{pc}:')
++    if address in HUD:
++        # This constant belongs to the read-only PE section. Scale its loaded
++        # value instead of attempting to patch protected guest memory.
++        replace('fp_push(*(float*)&MEM32(0x7491DC)); /* 0x006DD801:',
++                'fp_push(*(float*)&MEM32(0x7491DC) * dmc3_live_graphics_width_scale()); /* 0x006DD801:')
++    if address==0x653630:
++        replace('_st[0] *= (double)*(float*)ADDR(0x739E94); /* 0x006536F7:',
++                '_st[0] *= (double)*(float*)ADDR(0x739E94) * dmc3_live_graphics_width_scale(); /* 0x006536F7:')
++        replace('PUSH32(esp, 0x208u); /* 0x0065374C:',
++                'PUSH32(esp, (uint32_t)(320.0f + 200.0f * dmc3_live_graphics_width_scale())); /* 0x0065374C:')
++    # Declarations affect these units only, avoiding a shared-header rebuild.
++    return text.replace('#include "recomp_funcs.h"', '#include "recomp_funcs.h"\nextern float dmc3_live_graphics_width_scale(void);\nextern int dmc3_live_graphics_valid(uint32_t, uint32_t);',1)
+--- /dev/null
++++ b/dmc3-android/tests/widescreen/guest-abi.c
+@@ -0,0 +1,34 @@
++#include "bootstrap.h"
++#include <stdint.h>
++uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp,g_cur_func,g_flag_k,g_flag_a,g_flag_b,g_flag_cf;
++uint32_t g_icall_trace[ICALL_TRACE_SIZE],g_icall_from[ICALL_TRACE_SIZE],g_icall_trace_idx,g_icall_count,g_direct_call_count;
++ptrdiff_t g_mem_base;
++double g_st[8];int g_fp_top;uint16_t g_fpu_cw=0x027f;
++static unsigned char memory[0x2600000];
++void (*recomp_yield_hook)(void);
++extern void sub_004028B0(void),sub_006CDA6B(void);
++extern void dmc3_live_graphics_actual(uint32_t,uint32_t);
++uintptr_t init_hud_constant(void){
++    g_mem_base=(ptrdiff_t)memory;
++    *(float*)ADDR(0x7491DC)=1.0f/512.0f;
++    return ADDR(0x7491DC);
++}
++uint64_t validate_wide_size(uint32_t width,uint32_t height){
++    g_mem_base=(ptrdiff_t)memory;g_esp=0xf000;
++    MEM32(g_esp)=RECOMP_RETADDR;MEM32(g_esp+4)=0x2000;MEM32(g_esp+8)=0x2004;
++    MEM32(0x2000)=width;MEM32(0x2004)=height;g_esi=0x12345678;g_edi=0x87654321;
++    sub_004028B0();
++    if(g_esp!=0xf004||g_esi!=0x12345678||g_edi!=0x87654321)return UINT64_MAX;
++    return MEM32(0x2000)|((uint64_t)MEM32(0x2004)<<32);
++}
++uint64_t camera_scales(uint32_t width,uint32_t height){
++    g_mem_base=(ptrdiff_t)memory;dmc3_live_graphics_actual(width,height);
++    g_esp=0xf000;g_edi=0x10000;g_ebx=0;g_fp_top=0;
++    MEM8(g_edi+3)=1;MEM16(g_edi+0x20)=width;MEM16(g_edi+0x24)=height;
++    MEM32(0x252CAC8)=g_edi;*(float*)ADDR(g_edi+0x70)=2.0f;
++    // Enter this original internal block with its enclosing function's frame.
++    MEM32(g_esp)=0x1111;MEM32(g_esp+4)=0x2222;MEM32(g_esp+8)=0x3333;MEM32(g_esp+12)=0x4444;MEM32(g_esp+24)=RECOMP_RETADDR;
++    sub_006CDA6B();
++    if(g_esp!=0xf01c||g_edi!=0x1111||g_esi!=0x2222||g_ebp!=0x3333||g_ebx!=0x4444)return UINT64_MAX;
++    return MEM32(0x10060)|((uint64_t)MEM32(0x10064)<<32);
++}

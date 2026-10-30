@@ -4,42 +4,43 @@
 
 | Field | Value |
 | --- | --- |
-| Preview version | v0.25 / `0.25-branded-preview` |
-| Version code | 25 |
-| Build date | October 29, 2026 |
+| Preview version | v0.28 / `0.28-widescreen-startup-fix` |
+| Version code / application name | 28 / DMC3 |
+| Build date | October 30, 2026 |
 | Package | `local.dmc3.runtimeprobe` |
 | Architecture | ARM64 / `arm64-v8a` |
-| APK | `DMC3-Android-arm64-v0.25.apk` |
-| APK size | 53,470,524 bytes / 50.99 MiB |
+| APK | `DMC3-Android-arm64-v0.28.apk` |
+| APK size | 53,491,004 bytes / 51.01 MiB |
 | Package API minimum / target | 26 / 28 |
 | Bundled driver loader minimum | API 28 / Android 9 |
 | Development device | Poco F3, Android 13, Adreno 650, 6 GB RAM |
 | Game catalog | 19,152 linked functions |
-| Native runtime | Unchanged from v0.24 |
+| Guest cache | 844 objects reused; six batch objects rebuilt |
 | Renderer | DXVK Native 2.6.2 |
 | Bundled driver | v27.0.0-20261028-r4 |
+| Aspect ratios | Original 4:3 / Widescreen 16:9 |
 
-This development-signed APK uses the same application ID and local signing
-certificate as earlier previews, allowing an update to retain app data. The
-private signing key is not distributed. The package API floor does not establish
-Android 8 device compatibility.
+The development signing certificate and application ID are retained, allowing
+an in-place update without clearing data. The private signing key is not
+distributed. The package API floor does not establish Android 8 compatibility.
 
 ## APK SHA-256
 
 ```text
-9ef80afc5a66b18764e32c0a201a7fb82cb4f916a40b6c5c50324cbb96ee2861
+c21fcc51d3d549b0e18b3b1e15a78730588ded19a25ce2bd3e94b4c5f7cced5f
 ```
 
 ## Native runtime SHA-256
 
 ```text
-15ac11cc10cd5c68b5ea5e08a5b9a4f76cef1e59eb48a72cd3a466040b8fe41d
+c959a44362b3ea3ecbaa4b14b4423bbc425d5f3c9b31264d3d53ea2bb6510ce5
 ```
 
-The native library and all 850 cached guest objects are reused. Only the Java
-launcher, Android resources, branding notice and APK packaging changed for v0.25.
-Build work uses command-line tools, one worker, two logical CPUs and below-normal
-priority. No performance improvement is claimed from the branding change.
+The APK combines the square adaptive icon, DMC3 name, 16:9 camera/HUD patch,
+aspect-ratio settings and the read-only HUD startup correction. Twelve targeted
+lifted sources occupy six rebuilt guest batch objects. Original baseline lifted
+sources, DXVK and GPU driver libraries are preserved. Build work uses one
+worker, two logical CPUs and below-normal priority. No FPS improvement is claimed.
 
 ## Supported game EXE SHA-256
 
@@ -47,11 +48,13 @@ priority. No performance improvement is claimed from the branding change.
 49f80df5cce75d2a2b942f25c8ebe6ac6aceac87e7869c8e35073a96397cf8f4
 ```
 
-The EXE is provided by the user and imported separately. The APK bundles no
-EXE, AFS archive, gameplay texture/model, audio/movie asset or save data. Its
-only game-branded bitmap is the explicitly added launcher/app-icon logo.
-Documentation screenshots are not packaged.
+Users must own the supported PC game and provide `dmc3se.exe` and the complete
+matching game folder. The APK contains no original EXE, AFS archive, gameplay
+texture/model, audio/movie asset or save data. The authorized branding logo is
+its only game-branded bitmap; documentation screenshots are not packaged.
 
 Machine-readable details: [build-info.json](build-info.json).
-Release-file fingerprints: [SHA256SUMS](SHA256SUMS).
-Release: [v0.25 on GitHub](https://github.com/sindufha/Devil-may-cry-3-recomp/releases/tag/v0.25).
+Fingerprint of the single release APK: [SHA256SUMS](SHA256SUMS).
+Release: [v0.28 on GitHub](https://github.com/sindufha/Devil-may-cry-3-recomp/releases/tag/v0.28).
+Licensing: [MIT](../LICENSE), [runtime/GPU notices](THIRD-PARTY-NOTICES.txt),
+and [branding notice](BRANDING-NOTICE.txt).

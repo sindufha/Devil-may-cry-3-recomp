@@ -53,7 +53,7 @@ files. The tree illustrates the required structure, not an exhaustive asset list
 
 ## First launch
 
-1. Install the APK and open **DMC3 Android**.
+1. Install the APK and open **DMC3**.
 2. Tap **Choose game EXE**, then select the matching executable. The launcher
    copies and verifies the EXE in its private storage.
 3. Tap **Choose game folder**, select the folder above, and grant folder access.

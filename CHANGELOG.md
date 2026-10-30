@@ -2,15 +2,30 @@
 
 [Back to overview](README.md)
 
-## v0.26 - icon fix (pending confirmation)
+## v0.28 - icon, naming, and widescreen settings
+
+- Include the icon and application-name fixes first prepared in local v0.26.
+- Add Widescreen 16:9 and Original 4:3 under MENU > Graphics > Aspect Ratio.
+- Add seven 16:9 render presets, from 854 x 480 through 1600 x 900.
+- Correct camera, HUD, text and combo-indicator scaling for widescreen.
+- Save the selected aspect and render size after a successful renderer resize.
+- Fix the local v0.27 startup crash by scaling the loaded HUD constant instead
+  of writing to protected game-image data.
+- Keep game files and saves external. Reuse DXVK, Turnip, and 844 guest cache
+  objects; only six guest batch objects differ from the v0.26 baseline.
+- Publish one combined ARM64 APK. v0.26 and v0.27 were local test builds.
+- See [widescreen behavior and validation](docs/WIDESCREEN.md). Performance in
+  the first-boss encounter remains an open limitation.
+
+## v0.26 - icon fix (local build, included in v0.28)
 
 - Keep both adaptive-icon layers square at 108 x 108 dp so the launcher does
   not derive an oval icon from the wide logo's intrinsic dimensions.
 - Keep the complete logo centered inside the adaptive icon's safe area.
 - Rename the installed application from DMC3 Android to DMC3.
 - Reuse the v0.25 native runtime, GPU libraries, and all 850 cached guest objects.
-- See the [issue #1 fix and validation](docs/ICON-FIX.md). Device appearance
-  confirmation is pending; this candidate has not been published.
+- See the [issue #1 fix and validation](docs/ICON-FIX.md). These changes are
+  included in the combined v0.28 release; no separate v0.26 APK is published.
 
 ## v0.25 — branded preview
 

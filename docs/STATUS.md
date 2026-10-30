@@ -3,7 +3,8 @@
 [Back to overview](../README.md)
 
 This is a playable development preview, not a completed port or a certification
-of the full game. The current build is v0.25, with the same native runtime as v0.24.
+of the full game. The current build is v0.28, including the combined icon, naming,
+widescreen, and startup-fix changes.
 
 ## Evidence from the user's device
 
@@ -16,7 +17,14 @@ The gameplay images display readings of 25.9 and 29.9 FPS. Title, pause, and
 briefing captures display approximately 58–62 FPS. These are single captures
 with unknown measurement conditions, not an average, benchmark, or fixed target.
 Scene complexity, resolution, driver behavior, shader work, and temperature can
-change performance. No new performance gain is claimed for the branding build.
+change performance. No performance gain is claimed for this release.
+
+On v0.28, a 19-second presentation sample during a user-reported first-boss
+encounter at 1280 x 720 averaged approximately **15.5 FPS** on Poco F3. GPU busy
+readings averaged approximately 34%; the guest thread was often sleeping and
+system CPU frequency caps were below hardware maxima. The exact cause has not
+been established. This scene remains a known performance limitation, not a
+fixed issue or evidence of a general device/driver diagnosis.
 
 ## Implemented paths
 
@@ -31,6 +39,8 @@ change performance. No new performance gain is claimed for the branding build.
 | Android lifecycle | Retained live process, surface reconnection, paused audio/timers |
 | Back navigation | App-owned exit confirmation; native Back does not become game input |
 | Branding | Special Edition logo in the adaptive app icon and launcher |
+| Icon/name fix | Square adaptive-icon layers and DMC3 application label |
+| Widescreen | 16:9/4:3 selector, camera/HUD correction, live resize and saved settings |
 
 The source catalog count establishes code coverage at link time. It does not
 establish that every execution path, mission, asset, or Windows API variant works.
@@ -43,14 +53,17 @@ These checks run locally without controlling the phone:
   edge drags, full-shape bounds, saved layouts, draft cancellation, and moved input.
 - **601** touch-model checks and **305** DirectInput ABI checks.
 - **278** native Back/touchscreen-mouse checks and **31** Java confirmation checks.
-- **376** save-profile/FPS checks and **41** graphics-option checks.
+- **376** save-profile/FPS checks and **80** graphics-option checks.
 - **725** lifecycle coordinator checks with cooperatively scheduled ARM64 contexts;
   **723** callback/renderer/audio method checks with controlled platform APIs.
 - **156** Android WSI checks, including repeated replacement of the same window pointer.
-- **66** window/live-resolution checks and **12** original resolution-validator cases.
+- **71** window/live-resolution checks and **12** original resolution-validator cases.
+- **19** patched-validator cases, **6** camera-block cases and **6** HUD-load cases
+  with the original constant page protected read-only.
 - **17,275** checks of the patched presenter methods against controlled GPU/OS behavior.
 - Package audits covering code-only runtime data, JNI contracts, driver provenance,
-  source fingerprints, and the unchanged 850 cached guest objects.
+  source fingerprints, and verification of all optimized function sources.
+  The widescreen change rebuilds six guest batch objects and reuses 844 others.
 
 Controlled API fixtures do not replace real GPU, Android thread scheduling,
 audio-device behavior, or touch testing. The latest Back, editor, lifecycle and

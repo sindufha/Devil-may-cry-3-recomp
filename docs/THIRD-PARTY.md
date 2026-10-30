@@ -19,6 +19,10 @@ the original game, Capcom branding/artwork/screenshots, or those components.
 
 The custom settings/layout workflow was informed by
 [ShaolinMonks-Android](https://github.com/RanggaCasper/ShaolinMonks-Android).
+The widescreen address and scaling-formula reference is
+[ThirteenAG's archived DMC3SE fix](https://github.com/ThirteenAG/WidescreenFixesPack/blob/7f09e7433c141d5dfd69ab72503471c3e8b7212e/source/DevilMayCry3.WidescreenFix/dllmain.cpp).
+The Android implementation applies targeted lifted-source transformations;
+it does not bundle or load the x86 ASI mod.
 The documentation organization was informed by
 [Transformers: The Game Recomp](https://github.com/sindufha/transformers-the-game-recomp).
 The text, status descriptions and implementation details here describe this DMC3
